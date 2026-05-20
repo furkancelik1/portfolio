@@ -24,7 +24,7 @@ const SOCIAL_LINKS = [
     ),
   },
   {
-    href: "https://linkedin.com",
+    href: "https://www.linkedin.com/in/ahmet-furkan-%C3%A7elik-099762398/",
     label: "LinkedIn",
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
@@ -33,7 +33,7 @@ const SOCIAL_LINKS = [
     ),
   },
   {
-    href: "https://twitter.com",
+    href: "https://twitter.com/furkancelik1111",
     label: "X / Twitter",
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
