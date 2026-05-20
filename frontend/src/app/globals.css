@@ -1,27 +1,4 @@
 @import "tailwindcss";
-
-@theme {
-  --animate-shoot-l-to-r: shoot-left-to-right 6s ease-in-out infinite;
-}
-
-@keyframes shoot-left-to-right {
-  0% {
-    transform: translateX(0);
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.7;
-  }
-  30% {
-    transform: translateX(calc(100vw + 100px));
-    opacity: 0;
-  }
-  100% {
-    transform: translateX(calc(100vw + 100px));
-    opacity: 0;
-  }
-}
-
 body {
   background-color: #030303;
   color: #f3f4f6;

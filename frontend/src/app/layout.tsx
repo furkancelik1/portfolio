@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+// @ts-ignore: CSS module declaration not found in this environment
 import "./globals.css";
 import AnimateWrapper from "@/components/providers/AnimateWrapper";
-import DynamicCanvasProvider from "@/components/providers/DynamicCanvasProvider";
+import SpaceBackground from "@/components/background/SpaceBackground";
 
 export const metadata: Metadata = {
   title: "Furkan Çelik",
@@ -17,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="tr" suppressHydrationWarning>
       <body>
-        <DynamicCanvasProvider />
+        <SpaceBackground />
         <AnimateWrapper>{children}</AnimateWrapper>
       </body>
     </html>

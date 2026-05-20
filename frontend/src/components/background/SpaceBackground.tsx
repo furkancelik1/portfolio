@@ -8,8 +8,15 @@ import * as THREE from "three";
 
 const STAR_COUNT_DESKTOP = 5000;
 const STAR_COUNT_MOBILE = 2000;
-const MAX_SHOOTING_STARS = 5;
-const SHOOTING_TRAIL_LENGTH = 30;
+
+// ⭐ KAYAN YILDIZ AYARLARI — Daha belirgin için artırıldı
+const MAX_SHOOTING_STARS = 12;          // 5 → 12 (daha fazla eşzamanlı yıldız)
+const SHOOTING_TRAIL_LENGTH = 60;       // 30 → 60 (daha uzun, daha akıcı iz)
+const SHOOTING_SPAWN_MIN = 0.6;         // 2s → 0.6s (çok daha sık spawn)
+const SHOOTING_SPAWN_MAX = 1.8;         // 5s → 1.8s
+const SHOOTING_HEAD_SIZE = 1.2;         // 0.35 → 1.2 (kalın parlak kafa)
+const SHOOTING_GLOW_OPACITY = 1.0;      // 0.9 → 1.0 (tam opaklık)
+
 const COSMIC_DUST_COUNT = 400;
 const MOBILE_BREAKPOINT = 768;
 
@@ -97,31 +104,41 @@ function StarField() {
   );
 }
 
-// ─── ShootingStars ──────────────────────────────────────────────────────────
+// ─── ShootingStars ───────────────────────────────────────────────────────────
+// ⭐ Tamamen yeniden yazıldı: Line2 yerine yoğun Points dizisi ile yumuşak iz
 
 interface ShootingStar {
   x: number;
   y: number;
+  z: number;
   dx: number;
   dy: number;
   speed: number;
   life: number;
-  trail: { x: number; y: number }[];
+  maxLife: number;
+  trail: { x: number; y: number; z: number }[];
 }
 
 function ShootingStars() {
   const ref = useRef<THREE.Points>(null);
   const stars = useRef<ShootingStar[]>([]);
   const lastSpawn = useRef(0);
+  const initialized = useRef(false);
 
   const totalPoints = MAX_SHOOTING_STARS * SHOOTING_TRAIL_LENGTH;
 
   const initialPositions = useMemo(
     () => new Float32Array(totalPoints * 3),
-    []
+    [totalPoints]
   );
-  const initialSizes = useMemo(() => new Float32Array(totalPoints), []);
-  const initialColors = useMemo(() => new Float32Array(totalPoints * 3), []);
+  const initialSizes = useMemo(
+    () => new Float32Array(totalPoints),
+    [totalPoints]
+  );
+  const initialColors = useMemo(
+    () => new Float32Array(totalPoints * 3),
+    [totalPoints]
+  );
 
   useFrame((state) => {
     const points = ref.current;
@@ -129,21 +146,71 @@ function ShootingStars() {
     const time = state.clock.elapsedTime;
     const dt = Math.min(state.clock.getDelta(), 0.05);
 
+    // İlk frame'de hemen birkaç yıldız doğursun ki kullanıcı beklemek zorunda kalmasın
+    if (!initialized.current) {
+      for (let i = 0; i < 3; i++) {
+        const angle = Math.PI + (Math.random() - 0.5) * 0.4 + 0.3;
+        stars.current.push({
+          x: 16 + Math.random() * 3,
+          y: 6 - i * 4,
+          z: 0,
+          dx: Math.cos(angle),
+          dy: Math.sin(angle),
+          speed: 20 + Math.random() * 8,
+          life: 2.0,
+          maxLife: 2.0,
+          trail: [],
+        });
+      }
+      initialized.current = true;
+      lastSpawn.current = time;
+    }
+
+    // Spawn — Çok daha sık ve birden fazla aynı anda
+    const spawnInterval =
+      SHOOTING_SPAWN_MIN + Math.random() * (SHOOTING_SPAWN_MAX - SHOOTING_SPAWN_MIN);
+
     if (
-      time - lastSpawn.current > 2 + Math.random() * 3 &&
+      time - lastSpawn.current > spawnInterval &&
       stars.current.length < MAX_SHOOTING_STARS
     ) {
-      const angle = -Math.PI / 4 + (Math.random() - 0.5) * 0.4;
-      const speed = 25 + Math.random() * 15;
-      stars.current.push({
-        x: (Math.random() - 0.5) * 30,
-        y: (Math.random() - 0.5) * 20 + 6,
-        dx: Math.cos(angle),
-        dy: Math.sin(angle),
-        speed,
-        life: 1.5,
-        trail: [],
-      });
+      // Bazen iki yıldız aynı anda doğsun (gerçekçilik için)
+      const burstCount = Math.random() < 0.3 ? 2 : 1;
+
+      for (let b = 0; b < burstCount; b++) {
+        if (stars.current.length >= MAX_SHOOTING_STARS) break;
+
+        // Açı: sağdan sola, hafif aşağı doğru (135° ± 20°)
+        // Math.PI = sola, +0.3 = hafif aşağı
+        const angle = Math.PI + (Math.random() - 0.5) * 0.6 + 0.3;
+        const speed = 18 + Math.random() * 12;
+        const lifetime = 1.5 + Math.random() * 1.0;
+
+        // Kameranın görüş alanı: x ±15, y ±8 (z=0'da, fov 60°)
+        // Yıldızlar ekranın SAĞ KENARINDAN biraz dışarıdan başlasın, sola gitsin
+        // Ya da ekranın ÜST KENARINDAN başlasın
+        const fromRight = Math.random() < 0.7;
+
+        const startX = fromRight
+          ? 16 + Math.random() * 3              // Sağdan: 16-19
+          : (Math.random() - 0.5) * 24;         // Üstten: -12 ile +12
+
+        const startY = fromRight
+          ? (Math.random() - 0.3) * 14          // Sağdan: -4.2 ile +9.8 (üst yarıda yoğun)
+          : 9 + Math.random() * 2;              // Üstten: 9-11
+
+        stars.current.push({
+          x: startX,
+          y: startY,
+          z: 0,
+          dx: Math.cos(angle),
+          dy: Math.sin(angle),
+          speed,
+          life: lifetime,
+          maxLife: lifetime,
+          trail: [],
+        });
+      }
       lastSpawn.current = time;
     }
 
@@ -165,27 +232,53 @@ function ShootingStars() {
         continue;
       }
 
+      // Hareket
       s.x += s.dx * s.speed * dt;
       s.y += s.dy * s.speed * dt;
-      s.trail.push({ x: s.x, y: s.y });
-      if (s.trail.length > SHOOTING_TRAIL_LENGTH) s.trail.shift();
+
+      // İzi her frame'de birden fazla nokta ile doldur → daha yoğun iz
+      const stepsPerFrame = 2;
+      for (let step = 0; step < stepsPerFrame; step++) {
+        s.trail.push({
+          x: s.x - s.dx * s.speed * dt * (step / stepsPerFrame),
+          y: s.y - s.dy * s.speed * dt * (step / stepsPerFrame),
+          z: s.z,
+        });
+      }
+      while (s.trail.length > SHOOTING_TRAIL_LENGTH) s.trail.shift();
+
+      // Render
+      const lifeFactor = s.life / s.maxLife; // 1 → 0 yaşadıkça
 
       for (let j = 0; j < s.trail.length; j++) {
-        const idx = (head + j) * 3;
+        if (head >= totalPoints) break;
+
+        const idx = head * 3;
         posArr[idx] = s.trail[j].x;
         posArr[idx + 1] = s.trail[j].y;
-        posArr[idx + 2] = 0;
+        posArr[idx + 2] = s.trail[j].z;
 
-        const frac = j / s.trail.length;
-        const trailSize = 0.35 * (1 - frac * 0.85);
-        sizeArr[head + j] = trailSize;
+        // frac: 0 = en eski, 1 = en yeni (kafa)
+        const frac = j / Math.max(s.trail.length - 1, 1);
 
-        colorArr[idx] = 0.2 + 0.8 * (1 - frac);
-        colorArr[idx + 1] = 0.6 + 0.4 * (1 - frac);
-        colorArr[idx + 2] = 1;
+        // Kafa büyük ve parlak, kuyruk ince ve sönük
+        // Eksponansiyel azalma → daha sinematik
+        const intensity = Math.pow(frac, 1.8);
+        sizeArr[head] = SHOOTING_HEAD_SIZE * (0.1 + 0.9 * intensity) * lifeFactor;
+
+        // Renk: kafa beyaz-mavi parlak, kuyruk cyan-mor
+        // Kafada R/G yüksek (beyaz), kuyrukta R düşük (mavi-cyan)
+        colorArr[idx] = 0.4 + 0.6 * intensity;       // R: kafa beyaz
+        colorArr[idx + 1] = 0.7 + 0.3 * intensity;   // G: hep yüksek (cyan tonu)
+        colorArr[idx + 2] = 1.0;                      // B: hep tam
+
+        head++;
       }
+    }
 
-      head += s.trail.length;
+    // Kalan noktaları sıfırla (görünmesin)
+    for (let i = head; i < totalPoints; i++) {
+      sizeArr[i] = 0;
     }
 
     posAttr.needsUpdate = true;
@@ -217,13 +310,13 @@ function ShootingStars() {
         />
       </bufferGeometry>
       <pointsMaterial
-        size={0.15}
+        size={0.25}                          // 0.15 → 0.25 (daha büyük baz boyut)
         sizeAttenuation
         transparent
         vertexColors
         depthWrite={false}
         blending={THREE.AdditiveBlending}
-        opacity={0.9}
+        opacity={SHOOTING_GLOW_OPACITY}
       />
     </points>
   );
@@ -350,12 +443,17 @@ function MouseParallax({ children }: { children: React.ReactNode }) {
 
 function Scene() {
   return (
-    <MouseParallax>
-      <Nebula />
-      <StarField />
-      <CosmicDust />
+    <>
+      {/* Nebula ve sabit yıldızlar parallax içinde — derinlik hissi */}
+      <MouseParallax>
+        <Nebula />
+        <StarField />
+        <CosmicDust />
+      </MouseParallax>
+
+      {/* Shooting stars parallax DIŞINDA — sahnenin önünde, hep aynı düzlemde */}
       <ShootingStars />
-    </MouseParallax>
+    </>
   );
 }
 
@@ -366,7 +464,8 @@ export default function SpaceBackground() {
     <div
       className="fixed inset-0 -z-10 pointer-events-none"
       style={{
-        background: "radial-gradient(ellipse at center, #000000 0%, #0a0e27 100%)",
+        background:
+          "radial-gradient(ellipse at center, #000000 0%, #0a0e27 100%)",
       }}
     >
       <Canvas
