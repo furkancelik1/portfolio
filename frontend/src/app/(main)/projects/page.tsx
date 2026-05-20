@@ -71,9 +71,7 @@ export default function ProjectsPage() {
   }, []);
 
   return (
-    <section className="min-h-screen px-6 pt-32 pb-20 relative overflow-hidden bg-black">
-      {/* Arka Plan: Sabit Kutup Yıldızı Haritası Dokusu */}
-      <div className="fixed inset-0 z-0 opacity-15 pointer-events-none bg-[url('/star-map.svg')] bg-cover bg-center" />
+    <section className="min-h-screen px-6 pt-32 pb-20 relative z-30">
 
       <div className="mx-auto max-w-6xl relative z-30">
         <h1 className="text-4xl font-bold text-white sm:text-5xl tracking-tight">Projeler</h1>

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import AnimateWrapper from "@/components/providers/AnimateWrapper";
 import SpaceBackground from "@/components/background/SpaceBackground";
+import Header from "@/components/layout/Header";
 
 export const metadata: Metadata = {
   title: "Furkan Çelik",
@@ -19,6 +20,7 @@ export default function RootLayout({
     <html lang="tr" suppressHydrationWarning>
       <body>
         <SpaceBackground />
+        <Header />
         <AnimateWrapper>{children}</AnimateWrapper>
       </body>
     </html>
