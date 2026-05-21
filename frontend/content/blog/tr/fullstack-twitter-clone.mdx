@@ -1,0 +1,49 @@
+---
+title: "MERN Stack ile Twitter Clone: JWT Auth ve Socket.io"
+date: "2025-03-15"
+excerpt: "MongoDB, Express, React ve Node.js kullanarak gerçek zamanlı Twitter klonu geliştirdim. JWT ile kimlik doğrulama, bcrypt şifreleme ve Socket.io entegrasyonu."
+tags:
+  - MERN
+  - Socket.io
+  - JWT
+  - MongoDB
+---
+
+## Proje Hakkında
+
+Full-stack bir Twitter klonu geliştirerek **MERN Stack**'teki yetkinliğimi ileri seviyeye taşıdım.
+
+## Kullanıcı Kimlik Doğrulama
+
+JWT tabanlı auth sistemi şu şekilde çalışıyor:
+
+```javascript
+const generateToken = (user) => {
+  return jwt.sign(
+    { id: user._id, email: user.email },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+};
+```
+
+## Gerçek Zamanlı Mesajlaşma
+
+Socket.io ile anlık mesajlaşma ve bildirim sistemi kurdum:
+
+```javascript
+io.on("connection", (socket) => {
+  socket.on("join", (room) => {
+    socket.join(room);
+  });
+
+  socket.on("send_message", async (data) => {
+    const message = await Message.create(data);
+    io.to(data.room).emit("new_message", message);
+  });
+});
+```
+
+## Öğrendiklerim
+
+Bu proje bana gerçek zamanlı uygulamaların inceliklerini öğretti.

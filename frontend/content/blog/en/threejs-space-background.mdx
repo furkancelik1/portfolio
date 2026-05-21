@@ -1,0 +1,35 @@
+---
+title: "Building a Space Background with Three.js"
+date: "2025-04-20"
+excerpt: "How I created a star field, shooting stars, nebula, and cosmic dust effects using React Three Fiber and vanilla Three.js."
+tags:
+  - Three.js
+  - React
+  - WebGL
+  - Creative
+---
+
+## The Star Field
+
+The foundation is a particle system of 5000 stars distributed in a sphere around the camera. Each star has a random size, color temperature, and twinkle phase.
+
+### Shimmer Effect
+
+Stars pulse gently using `useFrame` to update each particle's opacity based on a sine wave with random phase offsets.
+
+```javascript
+useFrame((state) => {
+  const time = state.clock.elapsedTime;
+  positions.forEach((_, i) => {
+    const phase = i * 0.01;
+    sizes[i] = baseSize + Math.sin(time + phase) * 0.3;
+  });
+});
+```
+
+### Performance Optimizations
+
+- `useMemo` for geometry generation
+- `PointsMaterial` with `sizeAttenuation` for distance-aware rendering
+- Device pixel ratio capped at 2 on high-DPI screens
+- Reduced particle count on mobile devices

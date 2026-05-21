@@ -1,4 +1,20 @@
+import type { Metadata } from "next";
 import ContactForm from "@/components/ui/ContactForm";
+
+export const metadata: Metadata = {
+  title: "İletişim",
+  description:
+    "Furkan Çelik ile iletişime geçin — projeler, iş birliği veya herhangi bir konuda kozmik bir mesaj bırakın.",
+  openGraph: {
+    title: "İletişim | Furkan Çelik",
+    description:
+      "Furkan Çelik ile iletişime geçin — projeler, iş birliği veya herhangi bir konuda mesaj bırakın.",
+  },
+  twitter: {
+    title: "İletişim | Furkan Çelik",
+    description: "Furkan Çelik ile iletişime geçin.",
+  },
+};
 
 export default function ContactPage() {
   return (

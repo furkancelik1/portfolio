@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useCallback } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { useTranslations } from "next-intl";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -21,6 +22,7 @@ const itemVariants = {
 };
 
 export default function HeroSection() {
+  const t = useTranslations("hero");
   const sectionRef = useRef<HTMLDivElement>(null!);
   const mouseX = useMotionValue(0.5);
   const mouseY = useMotionValue(0.5);
@@ -70,16 +72,16 @@ export default function HeroSection() {
           variants={itemVariants}
           className="mb-6 block text-xs tracking-[0.3em] uppercase text-white/40"
         >
-          Full-Stack Developer & Designer
+          {t("title")}
         </motion.span>
 
         <motion.h1
           variants={itemVariants}
           className="max-w-4xl text-4xl sm:text-5xl md:text-7xl font-bold leading-tight text-white"
         >
-          Geleceğin Dijital Deneyimlerini{" "}
+          {t("subtitle")}{" "}
           <span className="bg-gradient-to-r from-violet-400 to-sky-400 bg-clip-text text-transparent">
-            İnşa Ediyorum
+            {t("subtitleHighlight")}
           </span>
         </motion.h1>
 
@@ -87,9 +89,7 @@ export default function HeroSection() {
           variants={itemVariants}
           className="mx-auto mt-6 max-w-xl text-base text-white/50 leading-relaxed"
         >
-          Modern web teknolojileri ile 3D görseller, akıcı animasyonlar ve
-          minimalist tasarımları birleştiren üst düzey kullanıcı deneyimleri
-          oluşturuyorum.
+          {t("description")}
         </motion.p>
 
         <motion.div
@@ -100,13 +100,13 @@ export default function HeroSection() {
             href="/projects"
             className="rounded-full border border-violet-500/50 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-violet-500/10 hover:border-violet-400"
           >
-            Projelerimi Gör
+            {t("cta")}
           </a>
           <a
             href="/contact"
             className="rounded-full px-6 py-3 text-sm font-medium text-white/50 transition-colors hover:text-white"
           >
-            İletişime Geç
+            {t("contact")}
           </a>
         </motion.div>
       </motion.div>

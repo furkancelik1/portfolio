@@ -1,16 +1,22 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
-import Link from "next/link";
+import { usePathname, Link, useRouter } from "@/i18n/routing";
+import { useTranslations, useLocale } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 
-const NAV_LINKS = [
-  { href: "/", label: "Ana Sayfa", short: "∅" },
-  { href: "/projects", label: "Projeler", short: "≋" },
-  { href: "/blog", label: "Blog", short: "✦" },
-  { href: "/about", label: "Hakkımda", short: "◎" },
-  { href: "/contact", label: "İletişim", short: "→" },
+const LOCALES = [
+  { code: "tr", label: "Türkçe" },
+  { code: "en", label: "English" },
+  { code: "es", label: "Español" },
+];
+
+const NAV_HREFS = [
+  { href: "/", short: "∅" },
+  { href: "/projects", short: "≋" },
+  { href: "/blog", short: "✦" },
+  { href: "/about", short: "◎" },
+  { href: "/contact", short: "→" },
 ];
 
 const SOCIAL_LINKS = [
@@ -43,11 +49,82 @@ const SOCIAL_LINKS = [
   },
 ];
 
+function LanguageSwitcher() {
+  const locale = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+
+  function switchLocale(code: string) {
+    router.replace(pathname, { locale: code });
+    setOpen(false);
+  }
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((p) => !p)}
+        onMouseEnter={() => setOpen(true)}
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-mono font-semibold tracking-wider text-white/40 border border-transparent hover:text-violet-300 hover:border-violet-500/30 hover:bg-violet-500/10 transition-all duration-200"
+      >
+        <span className="w-1.5 h-1.5 rounded-full bg-violet-500/60" />
+        {locale.toUpperCase()}
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -4, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.95 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            onMouseLeave={() => setOpen(false)}
+            className="absolute right-0 top-full mt-1.5 min-w-[130px] bg-zinc-950/95 backdrop-blur-xl border border-zinc-800/80 rounded-xl overflow-hidden shadow-2xl"
+          >
+            {LOCALES.map((loc) => (
+              <button
+                key={loc.code}
+                onClick={() => switchLocale(loc.code)}
+                className={[
+                  "w-full text-left px-4 py-2.5 text-sm transition-colors duration-150 flex items-center gap-3",
+                  loc.code === locale
+                    ? "text-violet-300 bg-violet-500/10"
+                    : "text-white/50 hover:text-white/80 hover:bg-white/5",
+                ].join(" ")}
+              >
+                <span
+                  className={[
+                    "w-1.5 h-1.5 rounded-full shrink-0",
+                    loc.code === locale
+                      ? "bg-violet-500"
+                      : "bg-zinc-600",
+                  ].join(" ")}
+                />
+                <span className="font-mono text-[10px] tracking-wider opacity-50 w-6 shrink-0">
+                  {loc.code.toUpperCase()}
+                </span>
+                <span>{loc.label}</span>
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export default function Header() {
   const pathname = usePathname();
+  const t = useTranslations("nav");
+  const locale = useLocale();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [time, setTime] = useState("");
+
+  const navLinks = NAV_HREFS.map((item) => ({
+    ...item,
+    label: t(item.href === "/" ? "home" : item.href.replace("/", "")),
+  }));
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -57,19 +134,27 @@ export default function Header() {
 
   useEffect(() => {
     const tick = () => {
-      setTime(
-        new Date().toLocaleTimeString("tr-TR", {
+      try {
+        setTime(
+          new Date().toLocaleTimeString(locale === "tr" ? "tr-TR" : locale, {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            timeZone: "Europe/Istanbul",
+          })
+        );
+      } catch {
+        setTime(new Date().toLocaleTimeString("en-US", {
           hour: "2-digit",
           minute: "2-digit",
-          second: "2-digit",
           timeZone: "Europe/Istanbul",
-        })
-      );
+        }));
+      }
     };
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     setMobileOpen(false);
@@ -77,7 +162,6 @@ export default function Header() {
 
   return (
     <>
-      {/* ── HEADER ── */}
       <header
         className={[
           "fixed top-0 inset-x-0 z-50 transition-all duration-500",
@@ -87,7 +171,6 @@ export default function Header() {
         ].join(" ")}
       >
         <div className="mx-auto max-w-6xl px-6 flex items-center justify-between gap-6">
-          {/* ── Logo ── */}
           <Link href="/" className="group flex items-center gap-3 shrink-0">
             <div className="relative w-8 h-8">
               <div className="absolute inset-0 rounded-full border border-violet-500/40 group-hover:border-violet-400/70 transition-colors duration-300" />
@@ -104,9 +187,8 @@ export default function Header() {
             </div>
           </Link>
 
-          {/* ── Desktop Nav ── */}
           <nav className="hidden md:flex items-center gap-1">
-            {NAV_LINKS.map(({ href, label }) => {
+            {navLinks.map(({ href, label }) => {
               const isActive =
                 href === "/" ? pathname === "/" : pathname.startsWith(href);
               return (
@@ -133,8 +215,9 @@ export default function Header() {
             })}
           </nav>
 
-          {/* ── Right side ── */}
           <div className="hidden md:flex items-center gap-4 shrink-0">
+            <LanguageSwitcher />
+            <div className="w-px h-4 bg-white/10" />
             <div className="flex items-center gap-1.5 text-[11px] font-mono text-white/20 tracking-wider">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/70 animate-pulse" />
               <span>IST {time}</span>
@@ -156,7 +239,6 @@ export default function Header() {
             </div>
           </div>
 
-          {/* ── Mobile hamburger ── */}
           <button
             onClick={() => setMobileOpen((p) => !p)}
             aria-label="Menü"
@@ -184,7 +266,6 @@ export default function Header() {
         </div>
       </header>
 
-      {/* ── Mobile Menu ── */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
@@ -195,7 +276,7 @@ export default function Header() {
             className="fixed inset-x-0 top-0 z-40 pt-20 pb-8 px-6 bg-black/90 backdrop-blur-2xl border-b border-white/8 md:hidden"
           >
             <nav className="flex flex-col gap-1">
-              {NAV_LINKS.map(({ href, label, short }, i) => {
+              {navLinks.map(({ href, label, short }, i) => {
                 const isActive =
                   href === "/" ? pathname === "/" : pathname.startsWith(href);
                 return (
@@ -228,32 +309,52 @@ export default function Header() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.28 }}
-              className="mt-8 pt-6 border-t border-white/8 flex items-center justify-between"
+              className="mt-8 pt-6 border-t border-white/8 flex flex-col gap-6"
             >
-              <div className="flex items-center gap-4">
-                {SOCIAL_LINKS.map(({ href, label, icon }) => (
-                  <a
-                    key={label}
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={label}
-                    className="text-white/25 hover:text-white/70 transition-colors"
-                  >
-                    {icon}
-                  </a>
-                ))}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  {SOCIAL_LINKS.map(({ href, label, icon }) => (
+                    <a
+                      key={label}
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={label}
+                      className="text-white/25 hover:text-white/70 transition-colors"
+                    >
+                      {icon}
+                    </a>
+                  ))}
+                </div>
+                <div className="text-[11px] font-mono text-white/20 tracking-wider flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/60 animate-pulse" />
+                  IST {time}
+                </div>
               </div>
-              <div className="text-[11px] font-mono text-white/20 tracking-wider flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/60 animate-pulse" />
-                IST {time}
+
+              <div className="flex flex-wrap gap-2">
+                {LOCALES.map((loc) => (
+                  <button
+                    key={loc.code}
+                    onClick={() => {
+                      setMobileOpen(false);
+                    }}
+                    className={[
+                      "px-3 py-2 rounded-lg text-xs font-mono tracking-wider transition-all duration-200 border",
+                      loc.code === locale
+                        ? "border-violet-500/40 bg-violet-500/10 text-violet-300"
+                        : "border-zinc-800/60 text-white/40 hover:text-white/70 hover:border-zinc-700/60",
+                    ].join(" ")}
+                  >
+                    {loc.code.toUpperCase()} — {loc.label}
+                  </button>
+                ))}
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── Mobile overlay backdrop ── */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div

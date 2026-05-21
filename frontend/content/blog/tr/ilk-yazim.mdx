@@ -1,0 +1,76 @@
+---
+title: "Next.js + Prisma + Supabase ile SaaS Uygulama Geliştirdim"
+date: "2025-05-01"
+excerpt: "NextAuth v4, Prisma v6 ve Supabase PostgreSQL kullanarak production'a aldığım tracking-app projesinde karşılaştığım sorunlar ve çözümleri."
+tags:
+  - Next.js
+  - Prisma
+  - Supabase
+  - SaaS
+---
+
+## Giriş
+
+Bu yazıda, **Next.js 15** ile geliştirdiğim kozmik alışkanlık takip uygulamamda karşılaştığım teknik zorlukları ve çözümlerini paylaşacağım.
+
+## Kullanılan Teknolojiler
+
+Projede kullandığım temel teknoloji yığını:
+
+- **Next.js 15** — App Router, Server Actions, RSC
+- **Prisma v6** — ORM katmanı
+- **Supabase PostgreSQL** — Veritabanı
+- **Stripe API** — Ödeme altyapısı
+
+## Session Stratejisi
+
+NextAuth v4 ile Supabase arasında adapter uyumsuzluğu yaşadım. Çözüm olarak **JWT stratejisi** kullandım:
+
+```typescript
+export const authOptions: NextAuthOptions = {
+  providers: [
+    CredentialsProvider({
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        const user = await prisma.user.findUnique({
+          where: { email: credentials?.email },
+        });
+
+        if (!user || !user.password) return null;
+
+        const isValid = await bcrypt.compare(
+          credentials?.password || "",
+          user.password
+        );
+
+        if (!isValid) return null;
+
+        return { id: user.id, email: user.email, name: user.name };
+      },
+    }),
+  ],
+  session: { strategy: "jwt" },
+};
+```
+
+## Vercel Deploy Süreci
+
+Production deploy sırasında şu hatalarla karşılaştım:
+
+| Hata | Çözüm |
+|------|-------|
+| Prisma engin bulunamadı | `prisma generate` postinstall script'i |
+| Edge Runtime timeout | API route'larını Node.js runtime'a çek |
+| CORS hatası | Next.js rewrites ile proxy yapılandırması |
+
+```bash
+# Örnek postinstall script
+"postinstall": "prisma generate"
+```
+
+## Sonuç
+
+Projeyi production'a almak beklediğimden daha uzun sürdü ama öğrendiklerim çok değerliydi. Özellikle Prisma + Supabase ikilisinin getirdiği type safety, geliştirme deneyimini çok üst seviyeye taşıyor.

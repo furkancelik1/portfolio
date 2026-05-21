@@ -1,0 +1,35 @@
+---
+title: "Creando un Fondo Espacial con Three.js"
+date: "2025-04-20"
+excerpt: "Cómo creé un campo de estrellas, estrellas fugaces, nebulosa y efectos de polvo cósmico usando React Three Fiber y Three.js."
+tags:
+  - Three.js
+  - React
+  - WebGL
+  - Creative
+---
+
+## El Campo de Estrellas
+
+La base es un sistema de partículas de 5000 estrellas distribuidas en una esfera alrededor de la cámara. Cada estrella tiene un tamaño aleatorio, temperatura de color y fase de parpadeo.
+
+### Efecto de Destello
+
+Las estrellas pulsan suavemente usando `useFrame` para actualizar la opacidad de cada partícula basada en una onda sinusoidal con fases aleatorias.
+
+```javascript
+useFrame((state) => {
+  const time = state.clock.elapsedTime;
+  positions.forEach((_, i) => {
+    const phase = i * 0.01;
+    sizes[i] = baseSize + Math.sin(time + phase) * 0.3;
+  });
+});
+```
+
+### Optimizaciones de Rendimiento
+
+- `useMemo` para generar geometría
+- `PointsMaterial` con `sizeAttenuation` para renderizado consciente de la distancia
+- Relación de píxeles limitada a 2 en pantallas de alta densidad
+- Recuento reducido de partículas en dispositivos móviles

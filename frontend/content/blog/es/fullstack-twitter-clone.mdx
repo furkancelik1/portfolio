@@ -1,0 +1,36 @@
+---
+title: "Clon de Twitter con MERN Stack: JWT Auth y Socket.io"
+date: "2025-03-15"
+excerpt: "Desarrollé un clon de Twitter en tiempo real usando MongoDB, Express, React y Node.js. Autenticación JWT, cifrado bcrypt e integración de Socket.io."
+tags:
+  - MERN
+  - Socket.io
+  - JWT
+  - MongoDB
+---
+
+## Resumen de la Arquitectura
+
+El proyecto sigue la arquitectura MERN estándar con una capa adicional de WebSocket para funciones en tiempo real.
+
+### Flujo de Autenticación
+
+Los tokens JWT se emiten al iniciar sesión y se verifican en cada ruta protegida. Las contraseñas se cifran con bcrypt antes de almacenarse.
+
+```javascript
+const token = jwt.sign(
+  { id: user._id, username: user.username },
+  process.env.JWT_SECRET,
+  { expiresIn: "7d" }
+);
+```
+
+### Mensajería en Tiempo Real
+
+Socket.io permite la entrega instantánea de mensajes. Cuando un usuario envía un mensaje, se transmite a todos los clientes conectados en la misma sala.
+
+### Conclusiones Clave
+
+- JWT con cookies httpOnly previene ataques XSS
+- Las salas de Socket.io aíslan conversaciones entre usuarios
+- Los change streams de MongoDB pueden usarse para sincronización en tiempo real

@@ -1,0 +1,24 @@
+---
+title: "Building a SaaS App with Next.js + Prisma + Supabase"
+date: "2025-05-01"
+excerpt: "The challenges and solutions I faced while building and deploying a tracking-app project to production using NextAuth v4, Prisma v6 and Supabase PostgreSQL."
+tags:
+  - Next.js
+  - Prisma
+  - Supabase
+  - SaaS
+---
+
+## Tech Stack
+
+- **Frontend:** Next.js 15 with App Router
+- **Database:** Supabase PostgreSQL via Prisma ORM
+- **Payments:** Stripe subscription integration
+
+### Key Challenges
+
+**Session Management:** Using NextAuth v4 with JWT strategy for authentication. The callback configuration required careful handling of the token and session objects.
+
+**Database Migrations:** Prisma migrations with Supabase required understanding the pgBouncer connection pooler limitations. DDL statements need a direct connection, not the pooled one.
+
+**Deployment:** Vercel deployment with environment variables for both public and private URLs.

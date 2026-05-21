@@ -1,0 +1,71 @@
+---
+title: "Three.js ile Portfolyoma Uzay Arka Planı Yaptım"
+date: "2025-04-20"
+excerpt: "React Three Fiber ve vanilla Three.js kullanarak yıldız alanı, kayan yıldızlar, nebula ve kozmik toz efektlerini nasıl oluşturduğumu anlattım."
+tags:
+  - Three.js
+  - React
+  - WebGL
+  - Creative
+---
+
+## Motivasyon
+
+Portfolyo sitemin karanlık ve fütüristik temasına uygun, **Three.js** ile gerçek zamanlı bir uzay sahnesi oluşturmak istedim.
+
+## Yıldız Alanı (Star Field)
+
+İlk adım olarak 5000 adet yıldızdan oluşan bir yıldız alanı oluşturdum:
+
+```typescript
+function StarField() {
+  const ref = useRef<THREE.Points>(null);
+  const count = 5000;
+
+  const positions = useMemo(() => {
+    const pos = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      const radius = 5 + Math.random() * 55;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+
+      pos[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+      pos[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+      pos[i * 3 + 2] = radius * Math.cos(phi);
+    }
+    return pos;
+  }, [count]);
+  // ...
+}
+```
+
+### Parıldama Efekti
+
+Her yıldızın farklı hızda parlaması için `Math.sin` ile bir `phase` değeri kullandım:
+
+```typescript
+useFrame((state) => {
+  const t = state.clock.elapsedTime;
+  for (let i = 0; i < count; i++) {
+    sizes[i] = baseSizes[i] * (0.6 + 0.4 * Math.sin(t * 1.5 + phases[i]));
+  }
+  sizeAttr.needsUpdate = true;
+});
+```
+
+## Performans Optimizasyonu
+
+5000 noktayı `useFrame` içinde güncellemek sorunsuz çalışıyor. Ek olarak şu optimizasyonları yaptım:
+
+- `useMemo` ile geometry/cilts oluşturma
+- Pixel ratio'yu 2'de sınırlama
+- Mobilde yıldız sayısını 2000'e düşürme
+
+```typescript
+dpr={[1, 2]}
+gl={{ antialias: true, powerPreference: "high-performance" }}
+```
+
+## Sonuç
+
+Ortaya çıkan görüntü tam istediğim gibi oldu. `Z-Index: -1` ile arka planda konumlandırılan bu sahne, sitenin fütüristik havasını tamamlıyor.
